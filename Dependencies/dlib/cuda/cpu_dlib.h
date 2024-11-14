@@ -250,7 +250,29 @@ namespace dlib
             const tensor& gamma,
             tensor& src_grad,
             tensor& gamma_grad,
-            tensor& beta_grad
+            tensor& beta_grad,
+            resizable_tensor& dmeans,
+            resizable_tensor& dvars
+        );
+
+   // -----------------------------------------------------------------------------------
+
+        void rms_normalize(
+            const double eps,
+            resizable_tensor& dest,
+            resizable_tensor& scale,
+            const tensor& src,
+            const tensor& gamma
+        );
+
+        void rms_normalize_gradient(
+            const tensor& gradient_input,
+            const tensor& scale,
+            const tensor& src,
+            const tensor& gamma,
+            tensor& src_grad,
+            tensor& gamma_grad,
+            resizable_tensor& dscale
         );
 
     // -----------------------------------------------------------------------------------
@@ -480,6 +502,7 @@ namespace dlib
     // -----------------------------------------------------------------------------------
 
         void reorg (
+            bool add_to,
             tensor& dest,
             const int row_stride,
             const int col_stride,
@@ -487,10 +510,28 @@ namespace dlib
         );
 
         void reorg_gradient (
+            bool add_to,
             tensor& grad,
             const int row_stride,
             const int col_stride,
             const tensor& gradient_input
+        );
+
+    // -----------------------------------------------------------------------------------
+
+        void embeddings(
+            resizable_tensor& dest,
+            const tensor& src,
+            const tensor& embs
+        );
+
+        void embeddings_gradient(
+            const tensor& prev,
+            const tensor& gradient_input,
+            tensor& grads,
+            const tensor& freqs,
+            float learning_rate,
+            bool scale
         );
 
     // -----------------------------------------------------------------------------------
@@ -603,7 +644,8 @@ namespace dlib
                 resizable_tensor& output,
                 const tensor& data,
                 const tensor& filters,
-                const tensor& biases
+                const tensor& biases,
+                bool use_relu
             );
 
             void operator() (
@@ -611,7 +653,8 @@ namespace dlib
                 tensor& output,
                 const tensor& data,
                 const tensor& filters,
-                const tensor& biases
+                const tensor& biases,
+                bool use_relu
             );
 
             void get_gradient_for_data (
@@ -645,6 +688,14 @@ namespace dlib
             const tensor& src,
             size_t src_k_offset,
             size_t count_k
+        );
+
+    // -----------------------------------------------------------------------------------
+
+        void transpose(
+            bool add_to,
+            tensor& dest,
+            const tensor& src
         );
 
     // -----------------------------------------------------------------------------------

@@ -939,6 +939,28 @@ namespace dlib
                 - #get_bias_weight_decay_multiplier() == val
         !*/
 
+        void disable_relu(
+        );
+        /*!
+            ensures
+                - relu_is_disabled() returns true
+        !*/
+
+        void enable_relu(
+        );
+        /*!
+            ensures
+                - relu_is_disabled() returns false
+        !*/
+
+        bool relu_is_disabled(
+        ) const;
+        /*!
+            ensures
+                - returns true if relu is disabled for this layer. This means no activation function
+                  will be applied after the convolution when calling forward.
+        !*/
+
         void disable_bias(
         );
         /*!
@@ -1413,6 +1435,42 @@ namespace dlib
 
 // ----------------------------------------------------------------------------------------
 
+    template <int DROP_RATE_PERCENT>
+    class dropout_rate_ : public dropout_
+    {
+        /*!
+            WHAT THIS OBJECT REPRESENTS
+                This object represents a customizable dropout layer that inherits from
+                the dropout_ class. It allows specifying the dropout rate at compile-time,
+                which is particularly useful for deep networks with many layers where it
+                might be cumbersome to explicitly modify the dropout rate for each layer
+                individually.
+
+                The main advantage of this layer is that it offers the possibility to specify
+                the dropout rate at the moment of network construction, providing more
+                flexibility and clarity in the network architecture definition.
+
+            TEMPLATE PARAMETERS
+                - DROP_RATE_PERCENT: A int value between 0 and 100 that specifies the dropout rate.
+                  This value is set at compile-time and cannot be changed during runtime.
+        !*/
+
+    public:
+        explicit dropout_rate_();
+        /*!
+            ensures
+                - Constructs a dropout layer with a dropout rate of DROP_RATE.
+                - Calls the base class constructor dropout_(DROP_RATE).
+        !*/
+    };
+
+    template <int DROP_RATE, typename SUBNET>
+    using dropout_rate = add_layer<dropout_rate_<DROP_RATE>, SUBNET>;
+    template <typename SUBNET>
+    using dropout_10 = add_layer<dropout_rate_<10>, SUBNET>;
+
+// ----------------------------------------------------------------------------------------
+
     class multiply_
     {
         /*!
@@ -1607,6 +1665,177 @@ namespace dlib
             These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
         !*/
     };
+
+// ----------------------------------------------------------------------------------------
+
+    const float DEFAULT_RMS_NORM_EPS = 1e-5f;
+
+    class rms_norm_
+    {
+        /*!
+            WHAT THIS OBJECT REPRESENTS
+                This object implements the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above, specifically defining a root mean square (RMS) normalization layer.
+
+                RMS normalization is a technique that normalizes the input tensor based on the
+                root mean square (RMS) of its elements. Unlike traditional layer normalization,
+                which both centers and scales the data, RMS normalization only scales by the RMS
+                value. This makes it computationally more efficient, as it avoids the need to
+                compute the mean and subtract it from each element.
+
+                This layer produces output tensors with the same dimensionality as the input tensors.
+                Specifically, for an input tensor with shape [num_samples, k, nr, nc], the RMS
+                normalization is applied across the [nr, nc] dimensions independently for each
+                element in the [k] dimension and for each sample in the [num_samples] dimension.
+                The scaling factor (RMS) and the learnable scaling parameter (gamma) are both of
+                size [k].
+
+                The key characteristics of this layer are:
+                - The RMS of the elements in each sample is standardized to 1.
+                - It does not center the data (i.e., it does not subtract the mean).
+                - A learnable scaling factor (gamma) is applied after normalization, allowing the
+                model to adapt the scaling dynamically.
+
+                This layer is particularly effective in various natural language processing tasks,
+                where it has been shown to provide performance similar to or better than traditional
+                layer normalization, with reduced computational overhead.
+        !*/
+
+    public:
+        rms_norm_(
+        );
+        /*!
+            ensures
+                - #get_learning_rate_multiplier() == 1
+                - #get_weight_decay_multiplier()  == 0
+                - #get_bias_learning_rate_multiplier()  == 1
+                - #get_bias_weight_decay_multiplier()   == 1            
+                - #get_eps() == DEFAULT_RMS_NORM_EPS
+        !*/
+
+        explicit rms_norm_(
+            float eps_ = DEFAULT_RMS_NORM_EPS
+        );
+        /*!
+            requires
+                - eps > 0
+            ensures
+                - #get_learning_rate_multiplier() == 1
+                - #get_weight_decay_multiplier()  == 0
+                - #get_bias_learning_rate_multiplier()  == 1
+                - #get_bias_weight_decay_multiplier()   == 1            
+                - #get_eps() == eps_
+        !*/
+
+        float get_eps(
+        ) const;
+        /*!
+            ensures
+                - When doing RMS normalization, we are dividing by the root mean square.
+                This epsilon value returned by this function is added to the
+                mean square to prevent division by zero.
+        !*/
+
+        void set_eps(
+            float val
+        );
+        /*!
+            requires
+                - val > 0
+            ensures
+                - #get_eps() == val
+        !*/    
+
+        double get_learning_rate_multiplier(
+        ) const;
+        /*!
+            ensures
+                - returns a multiplier number. The interpretation is that this object is
+                requesting that the learning rate used to optimize its parameters be
+                multiplied by get_learning_rate_multiplier().
+        !*/
+
+        double get_weight_decay_multiplier(
+        ) const;
+        /*!
+            ensures
+                - returns a multiplier number. The interpretation is that this object is
+                requesting that the weight decay used to optimize its parameters be
+                multiplied by get_weight_decay_multiplier().
+        !*/
+
+        void set_learning_rate_multiplier(
+            double val
+        );
+        /*!
+            requires
+                - val >= 0
+            ensures
+                - #get_learning_rate_multiplier() == val
+        !*/
+
+        void set_weight_decay_multiplier(
+            double val
+        );
+        /*!
+            requires
+                - val >= 0
+            ensures
+                - #get_weight_decay_multiplier() == val
+        !*/
+
+        double get_bias_learning_rate_multiplier(
+        ) const;
+        /*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                requesting that the learning rate used to optimize its bias parameters be
+                multiplied by get_learning_rate_multiplier()*get_bias_learning_rate_multiplier().
+        !*/
+
+        double get_bias_weight_decay_multiplier(
+        ) const;
+        /*!
+            ensures
+                - returns a multiplier number.  The interpretation is that this object is
+                requesting that the weight decay used to optimize its bias parameters be
+                multiplied by get_weight_decay_multiplier()*get_bias_weight_decay_multiplier().
+        !*/
+
+        void set_bias_learning_rate_multiplier(
+            double val
+        );
+        /*!
+            requires
+                - val >= 0
+            ensures
+                - #get_bias_learning_rate_multiplier() == val
+        !*/
+
+        void set_bias_weight_decay_multiplier(
+            double val
+        );
+        /*!
+            requires
+                - val >= 0
+            ensures
+                - #get_bias_weight_decay_multiplier() == val
+        !*/
+
+        template <typename SUBNET> void setup (const SUBNET& sub);
+        template <typename SUBNET> void forward(const SUBNET& sub, resizable_tensor& output);
+        template <typename SUBNET> void backward(const tensor& gradient_input, SUBNET& sub, tensor& params_grad);
+        dpoint map_input_to_output(dpoint p) const;
+        dpoint map_output_to_input(dpoint p) const;
+        const tensor& get_layer_params() const;
+        tensor& get_layer_params();
+        /*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/
+    };
+
+    template <typename SUBNET>
+    using rms_norm = add_layer<rms_norm_, SUBNET>;
 
 // ----------------------------------------------------------------------------------------
 
@@ -1820,22 +2049,6 @@ namespace dlib
     using bn_con = add_layer<bn_<CONV_MODE>, SUBNET>;
     template <typename SUBNET>
     using bn_fc = add_layer<bn_<FC_MODE>, SUBNET>;
-
-// ----------------------------------------------------------------------------------------
-
-    template <typename net_type>
-    void disable_duplicative_biases (
-        const net_type& net
-    );
-    /*!
-        requires
-            - net_type is an object of type add_layer, add_loss_layer, add_skip_layer, or
-              add_tag_layer.
-        ensures
-            - Disables bias for all bn_ and layer_norm_ inputs.
-            - Sets the get_bias_learning_rate_multiplier() and get_bias_weight_decay_multiplier()
-              to zero of all bn_ and layer_norm_ inputs.
-    !*/
 
 // ----------------------------------------------------------------------------------------
 
@@ -2273,6 +2486,15 @@ namespace dlib
 
         relu_(
         );
+
+        void disable(
+        );
+        /*!
+            ensures
+                - #get_layer_params().size() == 0.
+                - when forward_inplace and backward_inplace are called, they return immediately doing nothing.
+                  Causing this layer to trivially perform the an identity transform.
+        !*/
 
         template <typename SUBNET> void setup (const SUBNET& sub);
         void forward_inplace(const tensor& input, tensor& output);
@@ -3385,29 +3607,37 @@ namespace dlib
                 - col_stride >= 1
 
             WHAT THIS OBJECT REPRESENTS
-                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
-                defined above.  In particular, the output of this layer is simply a copy of
-                the input tensor.  However, it rearranges spatial information along the
-                channel dimension.  The dimensions of the tensor output by this layer are as
-                follows (letting IN be the input tensor and OUT the output tensor):
+                This class implements the EXAMPLE_COMPUTATIONAL_LAYER_ interface, performing a 
+                reorganization of tensor data. It rearranges spatial information along the channel
+                dimension, effectively "folding" spatial dimensions into channels.
+                
+                The dimensions of the output tensor are as follows (letting IN be the input tensor
+                and OUT the output tensor):
                     - OUT.num_samples() == IN.num_samples()
                     - OUT.k()  == IN.k() * row_stride * col_stride
                     - OUT.nr() == IN.nr() / row_stride
                     - OUT.nc() == IN.nc() / col_stride
 
-                So the output will always have the same number of samples as the input, but
-                within each sample (the k,nr,nc part) we will reorganize the values.  To be
-                very precise, we will have, for all n, k, r, c in OUT:
-                OUT.host[tensor_index(OUT, n, k, r, c)] ==
-                IN.host[tensor_index(IN,
-                                      n,
-                                      k % IN.k(),
-                                      r * row_stride + (k / IN.k()) / row_stride,
-                                      c * col_stride + (k / IN.k()) % col_stride)]
+                Therefore, the output tensor maintains the same number of samples as the input but
+                alters the channel and spatial dimensions based on the specified strides.
+                
+                Specifically, for all n, k, r, c in OUT:
+                    OUT.host[tensor_index(OUT, n, k, r, c)] ==
+                    IN.host[tensor_index(IN,
+                                        n,
+                                        k % IN.k(),
+                                        r * row_stride + (k / IN.k()) / col_stride,
+                                        c * col_stride + (k / IN.k()) % col_stride)]
 
+                **Enhancement Note:**  
+                The underlying utility functions (`reorg` and `reorg_gradient`) now include an
+                optional `bool add_to` parameter. While the current implementation uses the default
+                value to maintain existing behavior, this parameter allows for future reversible
+                operations and gradient accumulation flexibility within neural network layers.
 
-                Finally, you can think of this layer as an alternative to a strided convolutonal
-                layer to downsample a tensor.
+                You can think of this layer as an alternative to a strided convolutional layer for
+                downsampling tensors, offering similar spatial reduction with different internal
+                gradient propagation mechanics.
         !*/
 
     public:
@@ -3426,6 +3656,436 @@ namespace dlib
 
     template <typename SUBNET>
     using reorg = add_layer<reorg_<2, 2>, SUBNET>;
+
+// ----------------------------------------------------------------------------------------
+
+    class transpose_
+    {
+        /*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface
+                defined above. In particular, this layer performs a 2D matrix transposition
+                on each of the k planes within each sample of a 4D tensor.
+
+                The dimensions of the tensor output by this layer are as follows (letting
+                IN be the input tensor and OUT the output tensor):
+                    - OUT.num_samples() == IN.num_samples()
+                    - OUT.k()  == IN.k()
+                    - OUT.nr() == IN.nc()
+                    - OUT.nc() == IN.nr()
+
+                The transposition is performed as follows:
+                    - For each sample i and each k-plane j:
+                        - OUT[i][j][r][c] = IN[i][j][c][r] for all r in [0, IN.nc()) and c in [0, IN.nr())
+
+                This layer does not have any learnable parameters.
+        !*/
+
+    public:
+
+        transpose_() = default;
+
+        template <typename SUBNET> void setup (const SUBNET& sub);
+        template <typename SUBNET> void forward(const SUBNET& sub, resizable_tensor& output);
+        template <typename SUBNET> void backward(const tensor& gradient_input, SUBNET& sub, tensor& params_grad);
+        
+        inline dpoint map_input_to_output(dpoint p) const;
+        inline dpoint map_output_to_input(dpoint p) const;
+
+        const tensor& get_layer_params() const; 
+        tensor& get_layer_params(); 
+
+        friend void serialize(const transpose_& item, std::ostream& out);
+        friend void deserialize(transpose_& item, std::istream& in);
+
+        friend std::ostream& operator<<(std::ostream& out, const transpose_& item);
+        friend void to_xml(const transpose_& item, std::ostream& out);
+
+        /*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/
+    private:
+        resizable_tensor params; // unused
+    };
+
+    template <typename SUBNET>
+    using transpose = add_layer<transpose_, SUBNET>;
+
+// ----------------------------------------------------------------------------------------
+
+    class positional_encodings_
+    {
+        /*!
+            WHAT THIS OBJECT REPRESENTS
+                This is an implementation of the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+                It defines a positional encoding layer that adds position information to
+                the input tensor. This is particularly useful in transformer architectures
+                where the order of the sequence matters.
+
+                The dimensions of the tensors output by this layer are the same as the input
+                tensor dimensions.
+
+                This implementation is based on the positional encoding described in:
+                Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., 
+                Kaiser, Ł., & Polosukhin, I. (2017). Attention is all you need. In Advances 
+                in neural information processing systems (pp. 5998-6008).
+
+                The encoding uses sine and cosine functions of different frequencies:
+                PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))
+                PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
+                where pos is the position and i is the dimension.
+        !*/
+
+    public:
+
+        positional_encodings_(
+            unsigned long sequence_dim_ = 1,
+            unsigned long embedding_dim_ = 1
+        );
+        /*!
+            ensures
+                - #sequence_dim == sequence_dim_
+                - #embedding_dim == embedding_dim_
+        !*/
+
+        positional_encodings_ (
+            const positional_encodings_& item
+        );
+        /*!
+            ensures
+                - EXAMPLE_COMPUTATIONAL_LAYER_ objects are copy constructable
+        !*/
+
+        positional_encodings_& operator=(
+            const positional_encodings_& item
+        );
+        /*!
+            ensures
+                - EXAMPLE_COMPUTATIONAL_LAYER_ objects are assignable
+        !*/
+
+        template <typename SUBNET>
+        void setup (
+            const SUBNET& sub
+        );
+        /*!
+            requires
+                - SUBNET implements the SUBNET interface defined at the top of this file.
+            ensures
+                - performs any necessary setup for the layer, including the calculation
+                of positional encodings based on the dimensions of the input.
+        !*/
+
+        template <typename SUBNET>
+        void forward(
+            const SUBNET& sub,
+            resizable_tensor& output
+        );
+        /*!
+            requires
+                - SUBNET implements the SUBNET interface defined at the top of this file.
+                - setup() has been called.
+            ensures
+                - Adds the positional encodings to the output of the subnetwork and 
+                stores the results into #output.
+        !*/
+
+        template <typename SUBNET>
+        void backward(
+            const tensor& gradient_input,
+            SUBNET& sub,
+            tensor& params_grad
+        );
+        /*!
+            requires
+                - SUBNET implements the SUBNET interface defined at the top of this file.
+                - setup() has been called.
+                - #params_grad is unused in this layer as there are no learnable parameters.
+            ensures
+                - Computes the gradient of the layer with respect to the input, which
+                is simply the input gradient itself as positional encodings are constant.
+        !*/
+
+        const tensor& get_layer_params(
+        ) const;
+        /*!
+            ensures
+                - returns the parameters that define the behavior of forward().
+                Note: This layer has no learnable parameters, so this returns an empty tensor.
+        !*/
+
+        tensor& get_layer_params(
+        );
+        /*!
+            ensures
+                - returns the parameters that define the behavior of forward().
+                Note: This layer has no learnable parameters, so this returns an empty tensor.
+        !*/
+
+        const tensor& get_positional_encodings(
+        ) const;
+        /*!
+            ensures
+                - returns the computed positional encodings.
+        !*/
+
+        tensor& get_positional_encodings(
+        );
+        /*!
+            ensures
+                - returns the computed positional encodings.
+        !*/
+
+        friend void serialize(const positional_encodings_& item, std::ostream& out);
+        friend void deserialize(positional_encodings_& item, std::istream& in);
+        /*!
+            provides serialization support
+        !*/
+
+        friend std::ostream& operator<<(std::ostream& out, const positional_encodings_& item);
+        /*!
+            print a string describing this layer.
+        !*/
+
+        friend void to_xml(const positional_encodings_& item, std::ostream& out);
+        /*!
+            This function is optional, but required if you want to print your networks with
+            net_to_xml(). It prints a layer as XML.
+        !*/
+    };
+
+    template <typename SUBNET>
+    using positional_encodings = add_layer<positional_encodings_, SUBNET>;
+
+// ----------------------------------------------------------------------------------------
+
+    template <
+        unsigned long num_embeddings_,
+        unsigned long embedding_dim_
+        >
+    class embeddings_
+    {
+        /*!
+            WHAT THIS OBJECT REPRESENTS
+                This object represents an embedding layer in a neural network. It maps discrete
+                tokens to continuous vector representations. This is a fundamental technique in
+                natural language processing and other domains dealing with categorical data.
+
+                The layer takes as input a tensor of integer indices and outputs a tensor of 
+                the same shape (except for the last dimension) where each index is replaced by 
+                its corresponding embedding vector.
+
+                For more information on embeddings, see:
+                Mikolov, T., Sutskever, I., Chen, K., Corrado, G. S., & Dean, J. (2013). 
+                Distributed representations of words and phrases and their compositionality. 
+                In Advances in neural information processing systems (pp. 3111-3119).
+
+            TEMPLATE PARAMETERS
+                - num_embeddings_: The size of the embedding dictionary, i.e., the number of 
+                                discrete tokens that can be embedded.
+                - embedding_dim_: The dimensionality of each embedding vector.
+
+            CONVENTION
+                - get_embeddings() returns the tensor of embedding vectors.
+                - get_num_embeddings() == num_embeddings_
+                - get_embedding_dim() == embedding_dim_
+                - get_learning_rate_multiplier() returns the learning rate multiplier for this layer.
+                - get_scale_by_freq() returns whether to scale gradients by token frequency.
+        */        
+    public:
+        embeddings_() = default;
+
+        unsigned long get_num_embeddings() const;
+        unsigned long get_embedding_dim() const;
+        double get_learning_rate_multiplier() const;
+        bool get_scale_by_freq() const;
+
+        void set_num_embeddings(unsigned long num);
+        void set_embedding_dim(unsigned long dim);
+        void set_learning_rate_multiplier(double val);
+        void set_scale_by_freq(bool val);
+
+        template <typename SUBNET> void setup(const SUBNET& sub);
+        template <typename SUBNET> void forward(const SUBNET& sub, resizable_tensor& output);
+        template <typename SUBNET> void backward(const tensor& gradient_input, SUBNET& sub, tensor& params_grad);
+
+        const tensor& get_layer_params() const;
+        tensor& get_layer_params();
+        const tensor& get_embeddings() const;
+        tensor& get_embeddings();
+
+        friend void serialize(const embeddings_& item, std::ostream& out);
+        friend void deserialize(embeddings_& item, std::istream& in);
+        friend std::ostream& operator<<(std::ostream& out, const embeddings_& item);
+        friend void to_xml(const embeddings_& item, std::ostream& out);
+
+        /*!
+            These functions are implemented as described in the EXAMPLE_COMPUTATIONAL_LAYER_ interface.
+        !*/
+    };
+
+    template <
+        unsigned long num_embeddings,
+        unsigned long embedding_dim,
+        typename SUBNET
+        >
+    using embeddings = add_layer<embeddings_<num_embeddings, embedding_dim>, SUBNET>;
+
+// ----------------------------------------------------------------------------------------
+
+    struct neg_infinity_tag {};
+    struct zero_tag {};
+
+    template<typename T>
+    struct is_special_value : std::false_type {};
+    template<>
+    struct is_special_value<neg_infinity_tag> : std::true_type {};
+    template<>
+    struct is_special_value<zero_tag> : std::true_type {};
+
+    template<long diag_, typename tag_, long num_ = 0, long den_ = 1>
+    class tril_
+    {
+        /*!
+            TEMPLATE PARAMETERS
+                - diag_: A long integer specifying the diagonal offset.
+                - tag_: A type tag specifying special values or void for numeric values.
+                - num_: Numerator for numeric diagonal value (default is 0, only used if tag_ is void).
+                - den_: Denominator for numeric diagonal value (default is 1, only used if tag_ is void).
+
+            REQUIREMENTS
+                - diag_ must be an integer.
+                - tag_ must be either neg_infinity_tag, zero_tag, or void.
+                - If tag_ is void, num_ and den_ are used to compute the diagonal value.
+                - If tag_ is neg_infinity_tag or zero_tag, num_ and den_ are ignored.
+
+            WHAT THIS OBJECT REPRESENTS
+                This object implements a layer in a deep neural network that applies a lower triangular mask to
+                its input tensor. The mask is defined such that all elements above the specified diagonal are set
+                to a given value. The diagonal offset and the mask value are determined by the template parameters.
+
+            DIAGONAL VALUE DETERMINATION
+                - If tag_ is neg_infinity_tag: diagonal value is set to negative infinity.
+                - If tag_ is zero_tag: diagonal value is set to zero.
+                - If tag_ is void: diagonal value is set to num_ / den_ as a float.
+
+            DIAGONAL OFFSET
+                The diag_ parameter determines the diagonal above which elements are masked:
+                - diag_ = 0: main diagonal
+                - diag_ > 0: diag_ steps above the main diagonal
+                - diag_ < 0: |diag_| steps below the main diagonal
+
+            EXAMPLE USAGE
+                // Create a layer that masks all elements above the main diagonal with -inf
+                tril_<0, neg_infinity_tag> layer1;
+
+                // Create a layer that masks all elements above the main diagonal with 0
+                tril_<0, zero_tag> layer2;
+
+                // Create a layer that masks all elements above the main diagonal with 0.5
+                tril_<0, void, 1, 2> layer3;
+
+                // Create a layer that masks all elements 5 positions above the main diagonal with -inf
+                tril_<5, neg_infinity_tag> layer4;
+
+                // Create a layer that masks all elements 3 positions below the main diagonal with 0.25
+                tril_<-3, void, 1, 4> layer5;
+
+            SERIALIZATION SUPPORT
+                This object supports serialization and deserialization via the serialize() and deserialize() functions.
+        !*/
+
+    public:
+        tril_() = default;
+        /*!
+            ensures
+                - This object is properly initialized.
+        !*/
+
+        template <typename SUBNET>
+        void setup(const SUBNET& sub);
+        /*!
+            requires
+                - SUBNET is a valid network layer type.
+            ensures
+                - Initializes the mask based on the dimensions of the input tensor from sub.
+        !*/
+
+        template <typename SUBNET>
+        void forward(const SUBNET& sub, resizable_tensor& output);
+        /*!
+            requires
+                - SUBNET is a valid network layer type.
+            ensures
+                - Applies the lower triangular mask to the input tensor from sub and stores the result in output.
+        !*/
+
+        template <typename SUBNET>
+        void backward(const tensor& gradient_input, SUBNET& sub, tensor& params_grad);
+        /*!
+            requires
+                - SUBNET is a valid network layer type.
+            ensures
+                - Computes the gradient of the loss with respect to the input tensor and stores it in sub.
+        !*/
+
+        inline dpoint map_input_to_output(const dpoint& p) const;
+        /*!
+            ensures
+                - Maps a point from the input tensor to the corresponding point in the output tensor.
+        !*/
+
+        inline dpoint map_output_to_input(const dpoint& p) const;
+        /*!
+            ensures
+                - Maps a point from the output tensor to the corresponding point in the input tensor.
+        !*/
+
+        const tensor& get_layer_params() const;
+        /*!
+            ensures
+                - Returns the parameters of this layer.
+        !*/
+
+        tensor& get_layer_params();
+        /*!
+            ensures
+                - Returns the parameters of this layer.
+        !*/
+
+        friend void serialize(const tril_& item, std::ostream& out);
+        /*!
+            ensures
+                - Serializes the state of this object to the given output stream.
+        !*/
+
+        friend void deserialize(tril_& item, std::istream& in);
+        /*!
+            ensures
+                - Deserializes the state of this object from the given input stream.
+        !*/
+
+        friend std::ostream& operator<<(std::ostream& out, const tril_& item);
+        /*!
+            ensures
+                - Prints a human-readable representation of this object to the given output stream.
+        !*/
+
+        friend void to_xml(const tril_& item, std::ostream& out);
+        /*!
+            ensures
+                - Serializes the state of this object to XML format and writes it to the given output stream.
+        !*/
+    };
+
+    template <typename SUBNET>
+    using tril = add_layer<tril_<0, zero_tag>, SUBNET>;
+
+    template <typename SUBNET>
+    using tril_mask = add_layer<tril_<0, neg_infinity_tag>, SUBNET>;
+
+    template <long diag, long num, long den, typename SUBNET>
+    using tril_diag = add_layer<tril_<diag, void, num, den>, SUBNET>;
 
 // ----------------------------------------------------------------------------------------
 

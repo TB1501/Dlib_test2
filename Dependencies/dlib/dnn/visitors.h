@@ -3,6 +3,7 @@
 #ifndef DLIB_DNn_VISITORS_H_
 #define DLIB_DNn_VISITORS_H_
 
+#include "visitors_abstract.h"
 #include "input.h"
 #include "layers.h"
 #include "loss.h"
@@ -307,6 +308,14 @@ namespace dlib
                 set_bias_weight_decay_multiplier(l.subnet().layer_details(), 0);
             }
 
+            template <typename U, typename E>
+            void disable_input_bias(add_layer<rms_norm_, U, E>& l)
+            {
+                disable_bias(l.subnet().layer_details());
+                set_bias_learning_rate_multiplier(l.subnet().layer_details(), 0);
+                set_bias_weight_decay_multiplier(l.subnet().layer_details(), 0);
+            }            
+
             template <layer_mode mode, typename U, typename E>
             void disable_input_bias(add_layer<bn_<mode>, U, E>& l)
             {
@@ -332,6 +341,14 @@ namespace dlib
                 set_bias_weight_decay_multiplier(l.subnet().get_repeated_layer(0).layer_details(), 0);
             }
 
+            template <size_t N, template <typename> class R, typename U, typename E>
+            void disable_input_bias(add_layer<rms_norm_, repeat<N, R, U>, E>& l)
+            {
+                disable_bias(l.subnet().get_repeated_layer(0).layer_details());
+                set_bias_learning_rate_multiplier(l.subnet().get_repeated_layer(0).layer_details(), 0);
+                set_bias_weight_decay_multiplier(l.subnet().get_repeated_layer(0).layer_details(), 0);
+            }            
+
             // handle input repeat layer with tag case
             template <layer_mode mode, unsigned long ID, typename E>
             void disable_input_bias(add_layer<bn_<mode>, add_tag_layer<ID, impl::repeat_input_layer>, E>& )
@@ -342,6 +359,11 @@ namespace dlib
             void disable_input_bias(add_layer<layer_norm_, add_tag_layer<ID, impl::repeat_input_layer>, E>& )
             {
             }
+
+            template <unsigned long ID, typename E>
+            void disable_input_bias(add_layer<rms_norm_, add_tag_layer<ID, impl::repeat_input_layer>, E>& )
+            {
+            }            
 
             // handle tag layer case
             template <layer_mode mode, unsigned long ID, typename U, typename E>
@@ -354,6 +376,11 @@ namespace dlib
             {
             }
 
+            template <unsigned long ID, typename U, typename E>
+            void disable_input_bias(add_layer<rms_norm_, add_tag_layer<ID, U>, E>& )
+            {
+            }            
+
             // handle skip layer case
             template <layer_mode mode, template <typename> class TAG, typename U, typename E>
             void disable_input_bias(add_layer<bn_<mode>, add_skip_layer<TAG, U>, E>& )
@@ -364,6 +391,11 @@ namespace dlib
             void disable_input_bias(add_layer<layer_norm_, add_skip_layer<TAG, U>, E>& )
             {
             }
+
+            template <template <typename> class TAG, typename U, typename E>
+            void disable_input_bias(add_layer<rms_norm_, add_skip_layer<TAG, U>, E>& )
+            {
+            }            
 
             template<typename input_layer_type>
             void operator()(size_t , input_layer_type& ) const
@@ -401,7 +433,42 @@ namespace dlib
                 // disable other layer types
             }
 
-            // handle the standard case (convolutional layer followed by affine;
+            // handle the case of convolutional layer followed by relu
+            template <long nf, long nr, long nc, int sy, int sx, int py, int px, typename U, typename R>
+            void fuse_convolution(add_layer<relu_, add_layer<con_<nf, nr, nc, sy, sx, py, px>, U>, R>& l)
+            {
+                if (l.layer_details().is_disabled())
+                    return;
+
+                // get the convolution below the relu layer
+                auto& conv = l.subnet().layer_details();
+
+                conv.enable_relu();
+
+                // disable the relu layer
+                l.layer_details().disable();
+            }
+
+            // handle the case of convolutional layer followed by affine followed by relu
+            template <long nf, long nr, long nc, int sy, int sx, int py, int px, typename U, typename E, typename R>
+            void fuse_convolution(add_layer<relu_, add_layer<affine_, add_layer<con_<nf, nr, nc, sy, sx, py, px>, U>, E>, R>& l)
+            {
+                if (l.layer_details().is_disabled())
+                    return;
+
+                // fuse the convolutional layer followed by affine
+                fuse_convolution(l.subnet());
+
+                // get the convolution below the affine layer
+                auto& conv = l.subnet().subnet().layer_details();
+
+                conv.enable_relu();
+
+                // disable the relu layer
+                l.layer_details().disable();
+            }
+
+            // handle the case of convolutional layer followed by affine
             template <long nf, long nr, long nc, int sy, int sx, int py, int px, typename U, typename E>
             void fuse_convolution(add_layer<affine_, add_layer<con_<nf, nr, nc, sy, sx, py, px>, U>, E>& l)
             {
@@ -608,6 +675,15 @@ namespace dlib
                 // update(i);
             }
 
+            // Handle the special case when the tag layer is followed by a skip layer
+            template <unsigned long ID, template <typename> class TAG, typename U, typename E>
+            void operator()(size_t i, const add_tag_layer<ID, add_skip_layer<TAG, U>, E>&)
+            {
+                tagged_layers.push_back(i);
+                const auto t = tag_id<TAG>::id;
+                tag_to_layer.at(t) = from;
+            }
+
             template <template <typename> class TAG, typename U>
             void operator()(size_t, const add_skip_layer<TAG, U>&)
             {
@@ -695,6 +771,14 @@ namespace dlib
                 end_node();
                 update(i);
             }
+
+            template <typename U, typename E>
+            void operator()(size_t i, const add_layer<rms_norm_, U, E>&)
+            {
+                start_node(i, "rms_norm");
+                end_node();
+                update(i);
+            }            
 
             template <layer_mode MODE, typename U, typename E>
             void operator()(size_t i, const add_layer<bn_<MODE>, U, E>&)
@@ -933,6 +1017,48 @@ namespace dlib
                 start_node(i, "reorg");
                 if (sy != 1 || sx != 1)
                     out << " | {stride|{" << sy<< "," << sx << "}}";
+                end_node();
+                update(i);
+            }
+
+            template <typename U, typename E>
+            void operator()(size_t i, const add_layer<transpose_, U, E>&)
+            {
+                start_node(i, "transpose");
+                end_node();
+                update(i);
+            }
+
+            template <unsigned long ne, unsigned long ed, typename U, typename E>
+            void operator()(size_t i, const add_layer<embeddings_<ne, ed>, U, E>& l)
+            {
+                start_node(i, "embeddings");
+                out << " | {num_embeddings|{" << l.layer_details().get_num_embeddings() << "}}";
+                out << " | {embedding_dim|{" << l.layer_details().get_embedding_dim() << "}}";
+                end_node();
+                update(i);
+            }            
+
+            template <typename U, typename E>
+            void operator()(size_t i, const add_layer<positional_encodings_, U, E>&)
+            {
+                start_node(i, "positional_encodings");
+                end_node();
+                update(i);
+            }
+
+            template <long diag, typename tag, long num, long den, typename U, typename E>
+            void operator()(size_t i, const add_layer<tril_<diag, tag, num, den>, U, E>&)
+            {
+                start_node(i, "tril");
+                out << " | {diag|{" << diag << "}}";
+                out << " | {diag_value|{";
+                
+                if (std::is_same<tag, neg_infinity_tag>::value) out << "-inf";
+                else if (std::is_same<tag, zero_tag>::value) out << "0";
+                else out << static_cast<float>(num) / static_cast<float>(den);
+                
+                out << "}}";
                 end_node();
                 update(i);
             }

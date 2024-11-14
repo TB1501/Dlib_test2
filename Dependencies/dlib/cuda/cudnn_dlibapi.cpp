@@ -788,7 +788,7 @@ namespace dlib
         select_best_algorithms (
             const tensor& data,
             const tensor_descriptor& dest_desc,
-            allow_cache_use allow_cache_use
+            allow_cache_use allow_cache_use_
         ) 
         {
             // Calling the cuDNN "find the best algorithm" functions is really slow.  So we keep a
@@ -800,7 +800,7 @@ namespace dlib
             // the cache.
             const auto cache_key = std::make_tuple(stride_y, stride_x, padding_y, padding_x, filters_nr, filters_nc);
             const auto iter = config_to_algo_cache.find(cache_key);
-            if (iter != config_to_algo_cache.end() && allow_cache_use == allow_cache_use::yes)
+            if (iter != config_to_algo_cache.end() && allow_cache_use_ == allow_cache_use::yes)
             {
                 std::tie(forward_algo, backward_data_algo, backward_filters_algo) = iter->second;
                 return;
@@ -927,8 +927,8 @@ namespace dlib
             {
                 backward_filters_best_algo = CUDNN_CONVOLUTION_BWD_FILTER_ALGO_0;
             }
-            backward_filters_algo = backward_filters_best_algo;
 #endif
+            backward_filters_algo = backward_filters_best_algo;
 
             // Save this algorithm selection in the cache
             config_to_algo_cache[cache_key] = std::make_tuple(forward_algo, backward_data_algo, backward_filters_algo);
@@ -1160,13 +1160,14 @@ namespace dlib
             resizable_tensor& output,
             const tensor& data,
             const tensor& filters,
-            const tensor& biases
+            const tensor& biases,
+            bool use_relu
         )
         {
             DLIB_CASSERT(stride_y > 0 && stride_x > 0, "You must call setup() before calling this function");
 
             output.set_size(out_num_samples, out_k, out_nr, out_nc);
-            (*this)(add_to_output, static_cast<tensor&>(output), data, filters, biases);
+            (*this)(add_to_output, static_cast<tensor&>(output), data, filters, biases, use_relu);
         }
 
         void tensor_conv::operator() (
@@ -1174,9 +1175,24 @@ namespace dlib
             tensor& output,
             const tensor& data,
             const tensor& filters,
-            const tensor& biases
+            const tensor& biases,
+            bool use_relu
         )
         {
+
+            // Function cudnnConvolutionBiasActivationForward should only be called with CUDNN_ACTIVATION_IDENTITY when
+            // the chosen forward algorithm is CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM, as cuDNN documentation explicitly says.
+            // In case the algorithm is different, perform the forward pass and bias addition separately.
+            // If use_relu is true, any algorithm can be used.
+            if (!use_relu && forward_algo != CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM)
+            {
+                (*this)(add_to_output, output, data, filters);
+
+                tt::add(1, output, 1, biases);
+
+                return;
+            }
+
             DLIB_CASSERT(is_same_object(output,data) == false);
             DLIB_CASSERT(is_same_object(output,filters) == false);
             DLIB_CASSERT(filters.k() == data.k());
@@ -1232,7 +1248,7 @@ namespace dlib
                     out,
                     descriptor(biases),
                     biases.device(),
-                    identity_activation_descriptor(),
+                    use_relu ? relu_activation_descriptor() : identity_activation_descriptor(),
                     out_desc,
                     out));
         }

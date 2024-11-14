@@ -814,13 +814,13 @@ namespace dlib { namespace tt
     /*!
         requires
             - eps > 0
-            - src.num_samples() == gamma.size() == beta.size()
+            - src.k() == gamma.size() == beta.size()
+            - gamma.num_samples() == gamma.nr() == gamma.nc() == 1
             - have_same_dimensions(gamma, beta) == true
-            - beta.num_samples() ==beta.nr() ==gamma.nc() == 1
         ensures
             - have_same_dimensions(#dest, src) == true
             - #means.size() == invstds.size() == src.num_samples()
-            - #dest == the normalized version of src.
+            - #dest == the normalized version of src, sample-wise.
             - #means == the mean values of the contents of src.
             - #invstds == 1/(the standard deviation values of the contents of src).
     !*/
@@ -834,7 +834,9 @@ namespace dlib { namespace tt
             const tensor& gamma,
             tensor& src_grad,
             tensor& gamma_grad,
-            tensor& beta_grad
+            tensor& beta_grad,
+            resizable_tensor& dmeans,
+            resizable_tensor& dvars
     );
     /*!
         requires
@@ -847,8 +849,6 @@ namespace dlib { namespace tt
             - have_same_dimensions(gamma, beta_grad) == true
             - means.size() == src.num_samples()
             - invstds.size() == src.num_samples()
-            - have_same_dimensions(means, gamma) == true
-            - have_same_dimensions(invstds, gamma) == true
         ensures
             - Let f(src,gamma,beta) == dot(gradient_input, dest output of
               layer_normalize(eps,dest,means,invstds,src,gamma,beta))
@@ -857,7 +857,58 @@ namespace dlib { namespace tt
             - Assigns the gradient of f() with respect to beta to #beta_grad.
     !*/
 
-    // -----------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
+
+    void rms_normalize(
+        const double eps,
+        resizable_tensor& dest,
+        resizable_tensor& scale,
+        const tensor& src,
+        const tensor& gamma
+    );
+    /*!
+        requires
+            - eps > 0
+            - gamma.k() == src.k()
+            - gamma.nr() == 1
+            - gamma.nc() == 1
+        ensures
+            - have_same_dimensions(#dest, src) == true
+            - #scale.size() == src.num_samples()
+            - #dest == the RMS normalized version of src
+            - #scale contains the RMS (Root Mean Square) values used to normalize each sample of src.
+            - Each element of #dest is computed as:
+                - #dest[n, k, i, j] == src[n, k, i, j] * gamma[k] / scale[n]
+            where n is the sample index, k is the channel index, and i, j are the spatial indices.
+    !*/
+
+    void rms_normalize_gradient(
+        const tensor& gradient_input,
+        const tensor& scale,
+        const tensor& src,
+        const tensor& gamma,
+        tensor& src_grad,
+        tensor& gamma_grad,
+        resizable_tensor& dscale
+    );
+    /*!
+        requires
+            - scale.size() == src.num_samples()
+            - have_same_dimensions(gamma, gamma_grad)
+            - gamma.k() == src.k()
+            - gamma.nr() == 1
+            - gamma.nc() == 1
+            - have_same_dimensions(gradient_input, src)
+            - have_same_dimensions(gradient_input, src_grad)
+        ensures
+            - Let f(src, gamma) == dot(gradient_input, dest output of
+                rms_normalize(eps, dest, scale, src, gamma))
+            - Adds the gradient of f() with respect to src to #src_grad
+            - Assigns the gradient of f() with respect to gamma to #gamma_grad
+            - #dscale contains the gradients of f() with respect to the RMS values.
+    !*/
+
+// -----------------------------------------------------------------------------------
 
     void threshold (
         tensor& data,
@@ -1047,8 +1098,9 @@ namespace dlib { namespace tt
             tensor& output,
             const tensor& data,
             const tensor& filters,
-            const tensor& biases
-        ) { impl(add_to_output,output,data,filters,biases); }
+            const tensor& biases,
+            bool use_relu
+        ) { impl(add_to_output,output,data,filters,biases,use_relu); }
         /*!
             requires
                 - setup() has been called.  Specifically, setup() has been called like this:
@@ -1069,6 +1121,8 @@ namespace dlib { namespace tt
                   previous values in output.
                 - Adds biases to the result of the convolved data
                 - filters contains filters.num_samples() filters.
+                - If use_relu==true, then a relu activation will be applied to the result
+                  of convolution+bias.
         !*/
 
         void operator() (
@@ -1076,8 +1130,9 @@ namespace dlib { namespace tt
             resizable_tensor& output,
             const tensor& data,
             const tensor& filters,
-            const tensor& biases
-        ) { impl(add_to_output,output,data,filters, biases); }
+            const tensor& biases,
+            bool use_relu
+        ) { impl(add_to_output,output,data,filters,biases,use_relu); }
         /*!
             requires
                 - setup() has been called.  Specifically, setup() has been called like this:
@@ -1914,6 +1969,7 @@ namespace dlib { namespace tt
 // ----------------------------------------------------------------------------------------
 
     void reorg (
+        bool add_to,
         tensor& dest,
         const int row_stride,
         const int col_stride,
@@ -1921,7 +1977,7 @@ namespace dlib { namespace tt
     );
     /*!
         requires
-            - is_same_object(dest, src)==false
+            - !is_same_object(dest, src)
             - src.nr() % row_stride == 0
             - src.nc() % col_stride == 0
             - dest.num_samples() == src.num_samples()
@@ -1929,20 +1985,31 @@ namespace dlib { namespace tt
             - dest.nr() == src.nr() / row_stride
             - dest.nc() == src.nc() / col_stride
         ensures
-            - Converts the spatial resolution into channel information.  So all the values in the input tensor 
-              appear in the output tensor, just in different positions.  
-            - For all n, k, r, c in dest:
-                dest.host[tensor_index(dest, n, k, r, c)] ==
-                src.host[tensor_index(src,
-                                      n,
-                                      k % src.k(),
-                                      r * row_stride + (k / src.k()) / row_stride,
-                                      c * col_stride + (k / src.k()) % col_stride)]
-
-
+            - Reorganizes the spatial resolution of src into channel information in dest, effectively
+              shifting spatial data into the channel dimension based on the specified strides.
+            - If add_to is false:
+                - Each element in dest is set to the corresponding reorganized value from src.
+            - If add_to is true:
+                - Each element in dest is incremented by the corresponding reorganized value from src.
+            - Specifically, for all n, k, r, c in dest:
+                - If add_to is false:
+                    dest.host[tensor_index(dest, n, k, r, c)] =
+                        src.host[tensor_index(src,
+                                            n,
+                                            k % src.k(),
+                                            r * row_stride + (k / src.k()) / col_stride,
+                                            c * col_stride + (k / src.k()) % col_stride)];
+                - If add_to is true:
+                    dest.host[tensor_index(dest, n, k, r, c)] +=
+                        src.host[tensor_index(src,
+                                            n,
+                                            k % src.k(),
+                                            r * row_stride + (k / src.k()) / col_stride,
+                                            c * col_stride + (k / src.k()) % col_stride)];
     !*/
 
     void reorg_gradient (
+        bool add_to,
         tensor& grad,
         const int row_stride,
         const int col_stride,
@@ -1950,19 +2017,110 @@ namespace dlib { namespace tt
     );
     /*!
         requires
-            - is_same_object(dest, src)==false
-            - gradient_input.nr % row_stride == 0
-            - gradient_input.nc % col_stride == 0
-            - dest.num_samples() == src.num_samples()
+            - !is_same_object(grad, gradient_input)
+            - gradient_input.nr() % row_stride == 0
+            - gradient_input.nc() % col_stride == 0
+            - grad.num_samples() == gradient_input.num_samples()
             - grad.k() == gradient_input.k() / row_stride / col_stride
             - grad.nr() == gradient_input.nr() * row_stride
             - grad.nc() == gradient_input.nc() * col_stride
         ensures
-            - Suppose that DEST is the output of reog(DEST, row_stride, col_stride, SRC)
-              for some SRC tensor, let f(SRC) == dot(gradient_input,DEST).  Then this
-              function computes the gradient of f() with respect to SRC and adds it to grad.
-            - It effectively reverts the reorg operation
+            - Computes the gradient of the function f(SRC) = DEST, where DEST is the result of
+              reorg(DEST, row_stride, col_stride, SRC).
+            - If add_to is false:
+                - Each element in grad is set to the corresponding gradient value.
+            - If add_to is true:
+                - Each element in grad is incremented by the corresponding gradient value.
+            - Specifically, for all n, k, r, c in grad:
+                - If add_to is false:
+                    grad.host[tensor_index(grad, n, k, r, c)] =
+                        gradient_input.host[tensor_index(gradient_input,
+                                                        n,
+                                                        (k*row_stride*col_stride) + (r%row_stride)*col_stride + c%col_stride,
+                                                        r/row_stride,
+                                                        c/col_stride)];
+                - If add_to is true:
+                    grad.host[tensor_index(grad, n, k, r, c)] +=
+                        gradient_input.host[tensor_index(gradient_input,
+                                                        n,
+                                                        (k*row_stride*col_stride) + (r%row_stride)*col_stride + c%col_stride,
+                                                        r/row_stride,
+                                                        c/col_stride)];
+            - This function effectively reverses the reorg operation, distributing gradients
+              from the channel dimension of gradient_input to the spatial dimensions of grad.
     !*/
+
+// ----------------------------------------------------------------------------------------
+
+    void embeddings(
+        resizable_tensor& dest,
+        const tensor& src,
+        const tensor& embs
+    );
+    /*!
+        requires
+            - src.nr() > 0
+            - embs.num_samples() > 0
+            - embs.k() > 0
+            - embs.nr() == 1
+            - embs.nc() == 1
+            - dest.num_samples() == src.num_samples()
+            - dest.k() == src.k()
+            - dest.nr() == src.nr()
+            - dest.nc() == embs.k()
+        ensures
+            - Projects tokens from the input tensor `src` into embeddings stored in `embs`.
+            - The resulting embeddings are stored in the `dest` tensor.
+            - For all valid s (0 <= s < dest.num_samples()),
+                        k (0 <= k < dest.k()),
+                        r (0 <= r < dest.nr()),
+                        c (0 <= c < dest.nc()):
+                - Let token_idx = static_cast<unsigned long>(src(s,k,r,0))
+                - If token_idx < embs.num_samples():
+                    - #dest(s,k,r,c) = embs(token_idx, c, 0, 0)
+                - Else:
+                    - #dest(s,k,r,c) = 0
+            - The function iterates over all elements of src and populates dest accordingly.
+            - If a token index in src is out of range (>= embs.num_samples()),
+              the corresponding embedding in dest is filled with 0's.
+    */
+
+    void embeddings_gradient(
+        const tensor& prev,
+        const tensor& gradient_input,
+        tensor& grads,
+        const tensor& freqs,
+        float learning_rate,
+        bool scale
+    );
+    /*!
+        requires
+            - prev.nr() > 0
+            - gradient_input.num_samples() == prev.num_samples()
+            - gradient_input.k() == prev.k()
+            - gradient_input.nr() == prev.nr()
+            - gradient_input.nc() == grads.k()
+            - grads.num_samples() > 0
+            - grads.k() > 0
+            - grads.nr() == 1
+            - grads.nc() == 1
+            - freqs.num_samples() == grads.num_samples()
+            - freqs.k() == 1
+            - freqs.nr() == 1
+            - freqs.nc() == 1
+        ensures
+            - Updates the `grads` tensor based on the gradients in `gradient_input`.
+            - For each sample s, channel k, and row r in prev:
+                - Retrieves the token index from prev[s,k,r,0]
+                - If the token index is valid (< grads.num_samples()):
+                    - If scale is true:
+                        - Computes a frequency scale factor based on freqs[token_idx]
+                        - The scale factor is min(0.15, max(1.0 / freqs[token_idx], 1.0))
+                    - For each column c in gradient_input:
+                        - Updates grads[token_idx, c] -= gradient_input[s,k,r,c] * learning_rate * freq_scale
+            - The updates to grads are performed atomically to handle concurrent updates to the same embedding.
+            - The function is thread-safe and processes samples in parallel.
+    */
 
 // ----------------------------------------------------------------------------------------
 
@@ -2129,6 +2287,32 @@ namespace dlib { namespace tt
             - else
                 - performs: dest[i, k + dest_k_offset, r, c]  = src[i, k + src_k_offset, r, c], where k in [0..count_k]
                   i.e., copies content of each sample from src in to corresponding place of sample at dest.
+    !*/
+
+// ----------------------------------------------------------------------------------------
+
+    void transpose(
+        bool add_to,
+        tensor& dest,
+        const tensor& src
+    );
+    /*!
+        requires
+            - is_same_object(dest, src) == false
+            - dest.num_samples() == src.num_samples()
+            - dest.k() == src.k()
+            - dest.nr() == src.nc()
+            - dest.nc() == src.nr()            
+        ensures
+            - Performs a transpose operation on the nr() x nc() matrices within src.
+            - If (add_to) is false:
+                - The result is stored in dest, overwriting its previous contents.
+                - For all valid n, k, r, c:
+                    - #dest(n,k,c,r) == src(n,k,r,c)
+            - If (add_to) is true:
+                - The result is added to the existing contents of dest.
+                - For all valid n, k, r, c:
+                    - #dest(n,k,c,r) == dest(n,k,c,r) + src(n,k,r,c)
     !*/
 
 // ----------------------------------------------------------------------------------------

@@ -23,6 +23,67 @@ namespace
 
     logger dlog("test.image");
 
+    /*! Compile time tests !*/
+    struct not_a_pixel_type{};
+
+    static_assert(is_image_type<array2d<rgb_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<bgr_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<rgb_alpha_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<bgr_alpha_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<hsi_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<lab_pixel>>::value, "bad trait definition");
+
+    static_assert(is_image_type<array2d<char>>::value,           "bad trait definition");
+    static_assert(is_image_type<array2d<signed char>>::value,    "bad trait definition");
+    static_assert(is_image_type<array2d<unsigned char>>::value,  "bad trait definition");
+    static_assert(is_image_type<array2d<short>>::value,          "bad trait definition");
+    static_assert(is_image_type<array2d<unsigned short>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<int>>::value,            "bad trait definition");
+    static_assert(is_image_type<array2d<unsigned int>>::value,   "bad trait definition");
+    static_assert(is_image_type<array2d<long>>::value,           "bad trait definition");
+    static_assert(is_image_type<array2d<unsigned long>>::value,  "bad trait definition");
+    static_assert(is_image_type<array2d<int64>>::value,          "bad trait definition");
+    static_assert(is_image_type<array2d<uint64>>::value,         "bad trait definition");
+
+    static_assert(is_image_type<array2d<float>>::value,                      "bad trait definition");
+    static_assert(is_image_type<array2d<double>>::value,                     "bad trait definition");
+    static_assert(is_image_type<array2d<long double>>::value,                "bad trait definition");
+    static_assert(is_image_type<array2d<std::complex<float>>>::value,        "bad trait definition");
+    static_assert(is_image_type<array2d<std::complex<double>>>::value,       "bad trait definition");
+    static_assert(is_image_type<array2d<std::complex<long double>>>::value,  "bad trait definition");
+
+    static_assert(is_image_type<array2d<rgb_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<bgr_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<rgb_alpha_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<bgr_alpha_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<hsi_pixel>>::value, "bad trait definition");
+    static_assert(is_image_type<array2d<lab_pixel>>::value, "bad trait definition");
+
+    static_assert(is_image_type<matrix<char>>::value,           "bad trait definition");
+    static_assert(is_image_type<matrix<signed char>>::value,    "bad trait definition");
+    static_assert(is_image_type<matrix<unsigned char>>::value,  "bad trait definition");
+    static_assert(is_image_type<matrix<short>>::value,          "bad trait definition");
+    static_assert(is_image_type<matrix<unsigned short>>::value, "bad trait definition");
+    static_assert(is_image_type<matrix<int>>::value,            "bad trait definition");
+    static_assert(is_image_type<matrix<unsigned int>>::value,   "bad trait definition");
+    static_assert(is_image_type<matrix<long>>::value,           "bad trait definition");
+    static_assert(is_image_type<matrix<unsigned long>>::value,  "bad trait definition");
+    static_assert(is_image_type<matrix<int64>>::value,          "bad trait definition");
+    static_assert(is_image_type<matrix<uint64>>::value,         "bad trait definition");
+
+    static_assert(is_image_type<matrix<float>>::value,                      "bad trait definition");
+    static_assert(is_image_type<matrix<double>>::value,                     "bad trait definition");
+    static_assert(is_image_type<matrix<long double>>::value,                "bad trait definition");
+    static_assert(is_image_type<matrix<std::complex<float>>>::value,        "bad trait definition");
+    static_assert(is_image_type<matrix<std::complex<double>>>::value,       "bad trait definition");
+    static_assert(is_image_type<matrix<std::complex<long double>>>::value,  "bad trait definition");
+
+    static_assert(!is_image_type<not_a_pixel_type>::value,          "bad trait definition");
+    static_assert(!is_image_type<rgb_pixel>::value,                 "bad trait definition");
+    static_assert(!is_image_type<std::vector<rgb_pixel>>::value,    "bad trait definition");
+    static_assert(!is_image_type<array2d<not_a_pixel_type>>::value, "bad trait definition");
+    static_assert(!is_image_type<matrix<not_a_pixel_type>>::value,  "bad trait definition");
+
 
     void image_test (
     )
@@ -182,7 +243,7 @@ namespace
                     img[r][c].alpha = static_cast<unsigned char>(r*14 + c + 4);
                 }
             }
-
+        
             save_png(img, "test.png");
 
             img.clear();
@@ -214,9 +275,123 @@ namespace
                 }
             }
         }
+        {
+            matrix<rgb_alpha_pixel> img;
+            matrix<rgb_pixel> img2, img3;
+            img.set_size(14,15);
+            img2.set_size(img.nr(),img.nc());
+            img3.set_size(img.nr(),img.nc());
+            for (long r = 0; r < 14; ++r)
+            {
+                for (long c = 0; c < 15; ++c)
+                {
+                    img(r,c).red = static_cast<unsigned char>(r*14 + c + 1);
+                    img(r,c).green = static_cast<unsigned char>(r*14 + c + 2);
+                    img(r,c).blue = static_cast<unsigned char>(r*14 + c + 3);
+                    img(r,c).alpha = static_cast<unsigned char>(r*14 + c + 4);
+                }
+            }
+
+            save_png(img, "test.png");
+
+            img.set_size(0,0);
+            DLIB_TEST(img.nr() == 0);
+            DLIB_TEST(img.nc() == 0);
+
+            load_png(img, "test.png");
+            
+            DLIB_TEST(img.nr() == 14);
+            DLIB_TEST(img.nc() == 15);
+
+            assign_all_pixels(img2, 255);
+            assign_all_pixels(img3, 0);
+            load_png(img2, "test.png");
+            assign_image(img3, img);
+
+            for (long r = 0; r < 14; ++r)
+            {
+                for (long c = 0; c < 15; ++c)
+                {
+                    DLIB_TEST(img(r,c).red == r*14 + c + 1);
+                    DLIB_TEST(img(r,c).green == r*14 + c + 2);
+                    DLIB_TEST(img(r,c).blue == r*14 + c + 3);
+                    DLIB_TEST(img(r,c).alpha == r*14 + c + 4);
+
+                    DLIB_TEST(img2(r,c).red == img3(r,c).red);
+                    DLIB_TEST(img2(r,c).green == img3(r,c).green);
+                    DLIB_TEST(img2(r,c).blue == img3(r,c).blue);
+                }
+            }
+        }
+        {
+            const auto test_savers = [](const auto& img1)
+            {
+                const auto test_pixels = [](const auto& img1, const auto& img2)
+                {
+                    DLIB_TEST(img1.nr() == img2.nr());
+                    DLIB_TEST(img1.nc() == img2.nc());
+
+                    for (long r = 0; r < img1.nr(); ++r)
+                    {
+                        for (long c = 0; c < img1.nc(); ++c)
+                        {
+                            DLIB_TEST(img1[r][c].red   == r*14 + c + 1);
+                            DLIB_TEST(img1[r][c].green == r*14 + c + 2);
+                            DLIB_TEST(img1[r][c].blue  == r*14 + c + 3);
+
+                            DLIB_TEST(img1[r][c].red   == img2[r][c].red);
+                            DLIB_TEST(img1[r][c].green == img2[r][c].green);
+                            DLIB_TEST(img1[r][c].blue  == img2[r][c].blue);
+                        }
+                    }
+                };
+
+                using image_type = std::decay_t<decltype(img1)>;
+
+                const std::string    file_name = "test.png";
+                std::ostringstream   out;
+                std::vector<char>    buf1;
+                std::vector<int8_t>  buf2;
+                std::vector<uint8_t> buf3;
+
+                save_png(img1, file_name);
+                save_png(img1, out); 
+                save_png(img1, buf1);
+                save_png(img1, buf2);
+                save_png(img1, buf3);
+                std::istringstream in(out.str());
+
+                image_type img2, img3, img4, img5, img6;
+                load_png(img2, file_name);
+                load_png(img3, in);
+                load_png(img4, (const char*)buf1.data(), buf1.size());
+                load_png(img5, (const char*)buf1.data(), buf1.size());
+                load_png(img6, (const char*)buf1.data(), buf1.size());
+                test_pixels(img1, img2);
+                test_pixels(img1, img3);
+                test_pixels(img1, img4);
+                test_pixels(img1, img5);
+                test_pixels(img1, img6);
+            };
+
+            array2d<rgb_pixel> img1(14,15);
+            array2d<bgr_pixel> img2(14,15);
+
+            for (long r = 0; r < 14; ++r)
+            {
+                for (long c = 0; c < 15; ++c)
+                {
+                    img1[r][c].red   = static_cast<unsigned char>(r*14 + c + 1);
+                    img1[r][c].green = static_cast<unsigned char>(r*14 + c + 2);
+                    img1[r][c].blue  = static_cast<unsigned char>(r*14 + c + 3);
+                }
+            }
+
+            assign_image(img2, img1);
+            test_savers(img1);
+            test_savers(img2);
+        }
 #endif // DLIB_PNG_SUPPORT
-
-
 
         {
             array2d<rgb_pixel> img;
@@ -2263,9 +2438,9 @@ namespace
         rgb_pixel black(0, 0, 0);
         rgb_pixel white(255, 255, 255);
         matrix<rgb_pixel> img_s(40, 60);
-        matrix<rgb_pixel> img_d;
+        matrix<rgb_pixel> img_d(30, 30);
         assign_all_pixels(img_s, white);
-        const auto tform = letterbox_image(img_s, img_d, 30, interpolate_nearest_neighbor());
+        const auto tform = letterbox_image(img_s, img_d, interpolate_nearest_neighbor());
         DLIB_TEST(tform.get_m() == identity_matrix<double>(2) * 0.5);
         DLIB_TEST(tform.get_b() == dpoint(0, 5));
 
@@ -2307,27 +2482,30 @@ namespace
     }
 
     template <typename pixel_type>
-    double psnr(const matrix<pixel_type>& img1, const matrix<pixel_type>& img2)
+    double avg_pixel_delta(const matrix<pixel_type>& img1, const matrix<pixel_type>& img2)
     {
         DLIB_TEST(have_same_dimensions(img1, img2));
-        double mse = 0;
-        const long nk = width_step(img1) / img1.nc();
-        const long data_size = img1.size() * nk;
-        const bool has_alpha = nk == 4;
-        auto data1 = reinterpret_cast<const uint8_t*>(image_data(img1));
-        auto data2 = reinterpret_cast<const uint8_t*>(image_data(img2));
-        for (long i = 0; i < data_size; i += nk)
+
+        double delta = 0;
+        double size = 0;
+        for (long r = 0; r < img1.nr(); ++r) 
         {
-            // We are using the default WebP settings, which means 'exact' is disabled.
-            // RGB values in transparent areas will be modified to improve compression.
-            // As a result, we skip matching transparent pixels.
-            if (has_alpha && data1[i + 3] == 0 && data2[i + 3] == 0)
-                    continue;
-            for (long k = 0; k < nk; ++k)
-                mse += std::pow(static_cast<double>(data1[i + k]) - static_cast<double>(data2[i + k]), 2);
+            for (long c = 0; c < img1.nc(); ++c) 
+            {
+                const auto p1 = pixel_to_vector<double>(img1(r,c));
+                const auto p2 = pixel_to_vector<double>(img2(r,c));
+
+                const bool has_alpha = p1.size() == 4;
+                // We are using the default WebP settings, which means 'exact' is disabled.
+                // RGB values in transparent areas will be modified to improve compression.
+                // As a result, we skip matching transparent pixels.
+                if (has_alpha && p1(3) == 0 && p2(3) == 0) continue;
+
+                delta += sum(abs(p1-p2));
+                size += p1.size();
+            }
         }
-        mse /= data_size;
-        return 20 * std::log10(pixel_traits<pixel_type>::max()) - 10 * std::log10(mse);
+        return delta / size;
     }
 
     void test_webp()
@@ -2385,36 +2563,35 @@ namespace
             save_webp(rgba_img, "test_rgba.webp", quality);
             load_webp(rgba_dec, "test_rgba.webp");
             if (quality > 100)
-                DLIB_TEST(psnr(rgba_img, rgba_dec) == std::numeric_limits<double>::infinity());
+                DLIB_TEST(avg_pixel_delta(rgba_img, rgba_dec) == 0);
             else
-                DLIB_TEST(psnr(rgba_img, rgba_dec) > 30);
+                DLIB_TEST(avg_pixel_delta(rgba_img, rgba_dec) < 7);
 
             assign_image(bgra_img, rgba_img);
             save_webp(bgra_img, "test_bgra.webp", quality);
             load_webp(bgra_dec, "test_bgra.webp");
             if (quality > 100)
-                DLIB_TEST(psnr(bgra_img, bgra_dec) == std::numeric_limits<double>::infinity());
+                DLIB_TEST(avg_pixel_delta(bgra_img, bgra_dec) == 0);
             else
-                DLIB_TEST(psnr(bgra_img, bgra_dec) > 30);
+                DLIB_TEST(avg_pixel_delta(bgra_img, bgra_dec) < 7);
 
-            // Here we assign an image with an alpha channel to an image without an alpha channel.
-            // Since we are not using the exact mode in WebP, the PSNR will be quite low, since
-            // pixels in transparent areas will have different values.
+            rgb_img.set_size(rgba_img.nr(), rgba_img.nc());
+            rgb_img = rgb_pixel(0,0,0);
             assign_image(rgb_img, rgba_img);
             save_webp(rgb_img, "test_rgb.webp", quality);
             load_webp(rgb_dec, "test_rgb.webp");
             if (quality > 100)
-                DLIB_TEST(psnr(rgb_img, rgb_dec) == std::numeric_limits<double>::infinity());
+                DLIB_TEST(avg_pixel_delta(rgb_img, rgb_dec) == 0);
             else
-                DLIB_TEST(psnr(rgb_img, rgb_dec) > 15);
+                DLIB_TEST(avg_pixel_delta(rgb_img, rgb_dec) < 7);
 
             assign_image(bgr_img, rgb_img);
             save_webp(bgr_img, "test_bgr.webp", quality);
             load_webp(bgr_dec, "test_bgr.webp");
             if (quality > 100)
-                DLIB_TEST(psnr(bgr_img, bgr_dec) == std::numeric_limits<double>::infinity());
+                DLIB_TEST(avg_pixel_delta(bgr_img, bgr_dec) == 0);
             else
-                DLIB_TEST(psnr(bgr_img, bgr_dec) > 15);
+                DLIB_TEST(avg_pixel_delta(bgr_img, bgr_dec) < 7);
         }
 #endif
     }

@@ -11,7 +11,7 @@
 #include "../dir_nav.h"
 #include "jpeg_loader.h"
 #include <stdio.h>
-ifdef DLIB_JPEG_STATIC
+#ifdef DLIB_JPEG_STATIC
 #   include "../external/libjpeg/jpeglib.h"
 #else
 #   include <jpeglib.h>
@@ -73,6 +73,21 @@ namespace dlib
     bool jpeg_loader::is_rgba() const
     {
         return (output_components_ == 4);
+    }
+
+
+// ----------------------------------------------------------------------------------------
+
+    long jpeg_loader::nr() const
+    {
+        return static_cast<long>(height_);
+    }
+
+// ----------------------------------------------------------------------------------------
+
+    long jpeg_loader::nc() const
+    {
+        return static_cast<long>(width_);
     }
 
 // ----------------------------------------------------------------------------------------
@@ -167,7 +182,7 @@ namespace dlib
         data.resize(height_*width_*output_components_);
 
         // setup pointers to each row
-        for (unsigned long i = 0; i < rows.size(); ++i)
+        for (size_t i = 0; i < rows.size(); ++i)
             rows[i] = &data[i*width_*output_components_];
 
         // read the data into the buffer

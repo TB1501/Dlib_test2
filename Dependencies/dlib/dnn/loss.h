@@ -119,7 +119,7 @@ namespace dlib
 
         friend void to_xml(const loss_binary_hinge_& /*item*/, std::ostream& out)
         {
-            out << "<loss_binary_hinge/>";
+            out << "<loss_binary_hinge/>\n";
         }
 
     };
@@ -236,7 +236,7 @@ namespace dlib
 
         friend void to_xml(const loss_binary_log_& /*item*/, std::ostream& out)
         {
-            out << "<loss_binary_log/>";
+            out << "<loss_binary_log/>\n";
         }
 
     };
@@ -353,7 +353,7 @@ namespace dlib
 
         friend void to_xml(const loss_multiclass_log_& /*item*/, std::ostream& out)
         {
-            out << "<loss_multiclass_log/>";
+            out << "<loss_multiclass_log/>\n";
         }
 
     };
@@ -472,7 +472,7 @@ namespace dlib
 
         friend void to_xml(const loss_multiclass_log_weighted_& /*item*/, std::ostream& out)
         {
-            out << "<loss_multiclass_log_weighted/>";
+            out << "<loss_multiclass_log_weighted/>\n";
         }
 
     };
@@ -735,7 +735,7 @@ namespace dlib
         {
             out << "<loss_multimulticlass_log>\n";
             out << item;
-            out << "\n</loss_multimulticlass_log>";
+            out << "\n</loss_multimulticlass_log>\n";
         }
 
     private:
@@ -900,7 +900,7 @@ namespace dlib
 
         friend void to_xml(const loss_multibinary_log_& item, std::ostream& out)
         {
-            out << "<loss_multibinary_log gamma='" << item.gamma << "'/>";
+            out << "<loss_multibinary_log gamma='" << item.gamma << "'/>\n";
         }
 
     private:
@@ -1715,7 +1715,7 @@ namespace dlib
         friend void to_xml(const loss_mmod_& /*item*/, std::ostream& out)
         {
             // TODO, add options fields
-            out << "<loss_mmod/>";
+            out << "<loss_mmod/>\n";
         }
 
     private:
@@ -1843,12 +1843,11 @@ namespace dlib
             use_image_pyramid assume_image_pyramid
         ) const 
         {
-            using namespace std;
             if (!input_layer(net).image_contained_point(input_tensor,center(rect)))
             {
                 std::ostringstream sout;
-                sout << "Encountered a truth rectangle located at " << rect << " that is outside the image." << endl;
-                sout << "The center of each truth rectangle must be within the image." << endl;
+                sout << "Encountered a truth rectangle located at " << rect << " that is outside the image." << std::endl;
+                sout << "The center of each truth rectangle must be within the image." << std::endl;
                 throw impossible_labeling_error(sout.str());
             }
 
@@ -2236,7 +2235,7 @@ namespace dlib
 
         friend void to_xml(const loss_metric_& item, std::ostream& out)
         {
-            out << "<loss_metric margin='"<<item.margin<<"' distance_threshold='"<<item.dist_thresh<<"'/>";
+            out << "<loss_metric margin='"<<item.margin<<"' distance_threshold='"<<item.dist_thresh<<"'/>\n";
         }
 
     private:
@@ -2386,7 +2385,7 @@ namespace dlib
 
         friend void to_xml(const loss_ranking_& /*item*/, std::ostream& out)
         {
-            out << "<loss_ranking/>";
+            out << "<loss_ranking/>\n";
         }
 
     };
@@ -2493,7 +2492,7 @@ namespace dlib
 
         friend void to_xml(const loss_mean_squared_& /*item*/, std::ostream& out)
         {
-            out << "<loss_mean_squared/>";
+            out << "<loss_mean_squared/>\n";
         }
 
     };
@@ -2621,7 +2620,7 @@ namespace dlib
 
         friend void to_xml(const loss_epsilon_insensitive_& item, std::ostream& out)
         {
-            out << "<loss_epsilon_insensitive_ epsilon='" << item.eps << "'/>";
+            out << "<loss_epsilon_insensitive_ epsilon='" << item.eps << "'/>\n";
         }
 
     private:
@@ -2743,7 +2742,7 @@ namespace dlib
 
         friend void to_xml(const loss_mean_squared_multioutput_& /*item*/, std::ostream& out)
         {
-            out << "<loss_mean_squared_multioutput/>";
+            out << "<loss_mean_squared_multioutput/>\n";
         }
 
     };
@@ -2853,7 +2852,7 @@ namespace dlib
 
         friend void to_xml(const loss_binary_log_per_pixel_& /*item*/, std::ostream& out)
         {
-            out << "<loss_binary_log_per_pixel/>";
+            out << "<loss_binary_log_per_pixel/>\n";
         }
 
     private:
@@ -2998,7 +2997,7 @@ namespace dlib
 
         friend void to_xml(const loss_multiclass_log_per_pixel_& /*item*/, std::ostream& out)
         {
-            out << "<loss_multiclass_log_per_pixel/>";
+            out << "<loss_multiclass_log_per_pixel/>\n";
         }
 
     private:
@@ -3098,7 +3097,7 @@ namespace dlib
 
         friend void to_xml(const loss_multiclass_log_per_pixel_weighted_& /*item*/, std::ostream& out)
         {
-            out << "<loss_multiclass_log_per_pixel_weighted/>";
+            out << "<loss_multiclass_log_per_pixel_weighted/>\n";
         }
 
     private:
@@ -3231,7 +3230,7 @@ namespace dlib
 
         friend void to_xml(const loss_mean_squared_per_pixel_& /*item*/, std::ostream& out)
         {
-            out << "<loss_mean_squared_per_pixel/>";
+            out << "<loss_mean_squared_per_pixel/>\n";
         }
 
     };
@@ -3349,7 +3348,7 @@ namespace dlib
 
         friend void to_xml(const loss_mean_squared_per_channel_and_pixel_& /*item*/, std::ostream& out)
         {
-            out << "<loss_mean_squared_per_channel_and_pixel/>";
+            out << "<loss_mean_squared_per_channel_and_pixel/>\n";
         }
 
     private:
@@ -3462,7 +3461,7 @@ namespace dlib
 
         friend void to_xml(const loss_dot_& /*item*/, std::ostream& out)
         {
-            out << "<loss_dot/>";
+            out << "<loss_dot/>\n";
         }
 
     };
@@ -3518,12 +3517,14 @@ namespace dlib
         double lambda_obj = 1.0;
         double lambda_box = 1.0;
         double lambda_cls = 1.0;
+        double gamma_obj = 0.0;
+        double gamma_cls = 0.0;
 
     };
 
     inline void serialize(const yolo_options& item, std::ostream& out)
     {
-        int version = 1;
+        int version = 2;
         serialize(version, out);
         serialize(item.anchors, out);
         serialize(item.labels, out);
@@ -3534,13 +3535,15 @@ namespace dlib
         serialize(item.lambda_obj, out);
         serialize(item.lambda_box, out);
         serialize(item.lambda_cls, out);
+        serialize(item.gamma_obj, out);
+        serialize(item.gamma_cls, out);
     }
 
     inline void deserialize(yolo_options& item, std::istream& in)
     {
         int version = 0;
         deserialize(version, in);
-        if (version != 1)
+        if (!(1 <= version && version <= 2))
             throw serialization_error("Unexpected version found while deserializing dlib::yolo_options.");
         deserialize(item.anchors, in);
         deserialize(item.labels, in);
@@ -3551,6 +3554,11 @@ namespace dlib
         deserialize(item.lambda_obj, in);
         deserialize(item.lambda_box, in);
         deserialize(item.lambda_cls, in);
+        if (version >= 2)
+        {
+            deserialize(item.gamma_obj, in);
+            deserialize(item.gamma_cls, in);
+        }
     }
 
     inline std::ostream& operator<<(std::ostream& out, const std::map<int, std::vector<yolo_options::anchor_box_details>>& anchors)
@@ -3655,19 +3663,21 @@ namespace dlib
                     {
                         for (long c = 0; c < output_tensor.nc(); ++c)
                         {
-                            const float obj = out_data[tensor_index(output_tensor, n, k + 4, r, c)];
+                            const double obj = out_data[tensor_index(output_tensor, n, k + 4, r, c)];
                             if (obj > adjust_threshold)
                             {
-                                const auto x = out_data[tensor_index(output_tensor, n, k + 0, r, c)] * 2.0 - 0.5;
-                                const auto y = out_data[tensor_index(output_tensor, n, k + 1, r, c)] * 2.0 - 0.5;
-                                const auto w = out_data[tensor_index(output_tensor, n, k + 2, r, c)];
-                                const auto h = out_data[tensor_index(output_tensor, n, k + 3, r, c)];
+                                // The scaling and shifting in the x and y coordinates avoids the grid sensitivity
+                                // effect by allowing the network to output centers along the grid boundaries.
+                                const double x = out_data[tensor_index(output_tensor, n, k + 0, r, c)] * 2.0 - 0.5;
+                                const double y = out_data[tensor_index(output_tensor, n, k + 1, r, c)] * 2.0 - 0.5;
+                                const double w = out_data[tensor_index(output_tensor, n, k + 2, r, c)];
+                                const double h = out_data[tensor_index(output_tensor, n, k + 3, r, c)];
                                 yolo_rect det(centered_drect(dpoint((x + c) * stride_x, (y + r) * stride_y),
                                                              w / (1 - w) * anchors[a].width,
                                                              h / (1 - h) * anchors[a].height));
                                 for (long i = 0; i < num_classes; ++i)
                                 {
-                                    const float conf = obj * out_data[tensor_index(output_tensor, n, k + 5 + i, r, c)];
+                                    const double conf = obj * out_data[tensor_index(output_tensor, n, k + 5 + i, r, c)];
                                     if (conf > adjust_threshold)
                                         det.labels.emplace_back(conf, options.labels[i]);
                                 }
@@ -3708,7 +3718,8 @@ namespace dlib
                 tensor& grad = layer<TAG_TYPE>(sub).get_gradient_input();
                 DLIB_CASSERT(input_tensor.num_samples() == grad.num_samples());
                 DLIB_CASSERT(input_tensor.num_samples() == output_tensor.num_samples());
-                const rectangle input_rect(input_tensor.nr(), input_tensor.nc());
+                const drectangle input_rect = rectangle(input_tensor.nr(), input_tensor.nc());
+                const auto input_area = input_rect.area();
                 float* g = grad.host();
 
                 // Compute the objectness loss for all grid cells
@@ -3719,10 +3730,10 @@ namespace dlib
                         for (size_t a = 0; a < anchors.size(); ++a)
                         {
                             const long k = a * num_feats;
-                            const auto x = out_data[tensor_index(output_tensor, n, k + 0, r, c)] * 2.0 - 0.5;
-                            const auto y = out_data[tensor_index(output_tensor, n, k + 1, r, c)] * 2.0 - 0.5;
-                            const auto w = out_data[tensor_index(output_tensor, n, k + 2, r, c)];
-                            const auto h = out_data[tensor_index(output_tensor, n, k + 3, r, c)];
+                            const double x = out_data[tensor_index(output_tensor, n, k + 0, r, c)] * 2.0 - 0.5;
+                            const double y = out_data[tensor_index(output_tensor, n, k + 1, r, c)] * 2.0 - 0.5;
+                            const double w = out_data[tensor_index(output_tensor, n, k + 2, r, c)];
+                            const double h = out_data[tensor_index(output_tensor, n, k + 3, r, c)];
 
                             // The prediction at r, c for anchor a
                             const yolo_rect pred(centered_drect(dpoint((x + c) * stride_x, (y + r) * stride_y),
@@ -3739,9 +3750,14 @@ namespace dlib
                             }
 
                             // Incur loss for the boxes that are below a certain IoU threshold with any truth box
-                            const auto o_idx = tensor_index(output_tensor, n, k + 4, r, c);
                             if (best_iou < options.iou_ignore_threshold)
-                                g[o_idx] = options.lambda_obj * out_data[o_idx];
+                            {
+                                const auto o_idx = tensor_index(output_tensor, n, k + 4, r, c);
+                                const double p = out_data[o_idx];
+                                const double focus = std::pow(p, options.gamma_obj);
+                                const double g_obj = focus * (options.gamma_obj * (1 - p) * safe_log(1 - p) + p);
+                                g[o_idx] = options.lambda_obj * g_obj;
+                            }
                         }
                     }
                 }
@@ -3751,83 +3767,102 @@ namespace dlib
                 {
                     if (truth_box.ignore || !input_rect.contains(center(truth_box.rect)))
                         continue;
-                    const dpoint t_center = dcenter(truth_box);
+                    const auto truth_box_area = truth_box.rect.area();
+                    const auto t_center = center(truth_box.rect);
                     double best_iou = 0;
                     size_t best_a = 0;
                     size_t best_tag_id = 0;
+                    running_stats<double> ious;
                     for (const auto& item : options.anchors)
                     {
                         const auto tag_id = item.first;
                         const auto details = item.second;
                         for (size_t a = 0; a < details.size(); ++a)
                         {
-                            const yolo_rect anchor(centered_drect(t_center, details[a].width, details[a].height));
-                            const double iou = box_intersection_over_union(truth_box.rect, anchor.rect);
+                            const auto anchor(centered_drect(t_center, details[a].width, details[a].height));
+                            const double iou = box_intersection_over_union(truth_box.rect, anchor);
                             if (iou > best_iou)
                             {
                                 best_iou = iou;
                                 best_a = a;
                                 best_tag_id = tag_id;
+                                ious.add(iou);
                             }
                         }
                     }
 
+                    // ATSS: Adaptive Training Sample Selection
+                    double iou_anchor_threshold = options.iou_anchor_threshold;
+                    if (iou_anchor_threshold == 0)
+                        iou_anchor_threshold = ious.mean() + ious.stddev();
+
                     for (size_t a = 0; a < anchors.size(); ++a)
                     {
-                        // Update best anchor if it's from the current stride, and optionally other anchors
-                        if ((best_tag_id == tag_id<TAG_TYPE>::id && best_a == a) || options.iou_anchor_threshold < 1)
+                        // We will always backpropagate on the best anchor, regardless of its IOU.
+                        // For other anchors, only if they have an IOU >= iou_anchor_threshold.
+                        if (!(best_tag_id == tag_id<TAG_TYPE>::id && best_a == a))
                         {
+                            if (iou_anchor_threshold >= 1)
+                                continue;
+                            const auto anchor(centered_drect(t_center, anchors[a].width, anchors[a].height));
+                            if (box_intersection_over_union(truth_box.rect, anchor) < iou_anchor_threshold)
+                                continue;
+                        }
 
-                            // do not update other anchors if they have low IoU
-                            if (!(best_tag_id == tag_id<TAG_TYPE>::id && best_a == a))
+                        const long c = t_center.x() / stride_x;
+                        const long r = t_center.y() / stride_y;
+                        const long k = a * num_feats;
+
+                        // Get the truth box target values
+                        const double tx = t_center.x() / stride_x - c;
+                        const double ty = t_center.y() / stride_y - r;
+                        const double tw = truth_box.rect.width() / (anchors[a].width + truth_box.rect.width());
+                        const double th = truth_box.rect.height() / (anchors[a].height + truth_box.rect.height());
+
+                        // Scale regression error according to the truth size
+                        const double scale_box = options.lambda_box * (2.0 - truth_box_area / input_area);
+
+                        // Compute the smoothed L1 gradient for the box coordinates
+                        const auto x_idx = tensor_index(output_tensor, n, k + 0, r, c);
+                        const auto y_idx = tensor_index(output_tensor, n, k + 1, r, c);
+                        const auto w_idx = tensor_index(output_tensor, n, k + 2, r, c);
+                        const auto h_idx = tensor_index(output_tensor, n, k + 3, r, c);
+                        g[x_idx] = scale_box * put_in_range(-1, 1, (out_data[x_idx] * 2.0 - 0.5 - tx));
+                        g[y_idx] = scale_box * put_in_range(-1, 1, (out_data[y_idx] * 2.0 - 0.5 - ty));
+                        g[w_idx] = scale_box * put_in_range(-1, 1, (out_data[w_idx] - tw));
+                        g[h_idx] = scale_box * put_in_range(-1, 1, (out_data[h_idx] - th));
+
+                        // This grid cell should detect an object
+                        const auto o_idx = tensor_index(output_tensor, n, k + 4, r, c);
+                        {
+                            const auto p = out_data[o_idx];
+                            const double focus = std::pow(1 - p, options.gamma_obj);
+                            const double g_obj = focus * (options.gamma_obj * p * safe_log(p) + p - 1);
+                            g[o_idx] = options.lambda_obj * g_obj;
+                        }
+
+                        // Compute the classification error using the truth weights and the focal loss
+                        for (long i = 0; i < num_classes; ++i)
+                        {
+                            const auto c_idx = tensor_index(output_tensor, n, k + 5 + i, r, c);
+                            const auto p = out_data[c_idx];
+                            if (truth_box.label == options.labels[i])
                             {
-                                const yolo_rect anchor(centered_drect(t_center, anchors[a].width, anchors[a].height));
-                                const double iou = box_intersection_over_union(truth_box.rect, anchor.rect);
-                                if (iou < options.iou_anchor_threshold)
-                                    continue;
+                                const double focus = std::pow(1 - p, options.gamma_cls);
+                                const double g_cls = focus * (options.gamma_cls * p * safe_log(p) + p - 1);
+                                g[c_idx] = truth_box.detection_confidence * options.lambda_cls * g_cls;
                             }
-
-                            const long c = t_center.x() / stride_x;
-                            const long r = t_center.y() / stride_y;
-                            const long k = a * num_feats;
-
-                            // Get the truth box target values
-                            const double tx = t_center.x() / stride_x - c;
-                            const double ty = t_center.y() / stride_y - r;
-                            const double tw = truth_box.rect.width() / (anchors[a].width + truth_box.rect.width());
-                            const double th = truth_box.rect.height() / (anchors[a].height + truth_box.rect.height());
-
-                            // Scale regression error according to the truth size
-                            const double scale_box = options.lambda_box * (2 - truth_box.rect.area() / input_rect.area());
-
-                            // Compute the gradient for the box coordinates
-                            const auto x_idx = tensor_index(output_tensor, n, k + 0, r, c);
-                            const auto y_idx = tensor_index(output_tensor, n, k + 1, r, c);
-                            const auto w_idx = tensor_index(output_tensor, n, k + 2, r, c);
-                            const auto h_idx = tensor_index(output_tensor, n, k + 3, r, c);
-                            g[x_idx] = scale_box * (out_data[x_idx] * 2.0 - 0.5 - tx);
-                            g[y_idx] = scale_box * (out_data[y_idx] * 2.0 - 0.5 - ty);
-                            g[w_idx] = scale_box * (out_data[w_idx] - tw);
-                            g[h_idx] = scale_box * (out_data[h_idx] - th);
-
-                            // This grid cell should detect an object
-                            const auto o_idx = tensor_index(output_tensor, n, k + 4, r, c);
-                            g[o_idx] = options.lambda_obj * (out_data[o_idx] - 1);
-
-                            // Compute the classification error
-                            for (long i = 0; i < num_classes; ++i)
+                            else
                             {
-                                const auto c_idx = tensor_index(output_tensor, n, k + 5 + i, r, c);
-                                if (truth_box.label == options.labels[i])
-                                    g[c_idx] = options.lambda_cls * (out_data[c_idx] - 1);
-                                else
-                                    g[c_idx] = options.lambda_cls * out_data[c_idx];
+                                const double focus = std::pow(p, options.gamma_cls);
+                                const double g_cls = focus * (options.gamma_cls * (1 - p) * safe_log(1 - p) + p);
+                                g[c_idx] = options.lambda_cls * g_cls;
                             }
                         }
                     }
                 }
 
-                // Compute the L2 loss
+                // The loss is the squared norm of the gradient
                 loss += length_squared(rowm(mat(grad), n));
             }
         };
@@ -3956,6 +3991,8 @@ namespace dlib
             out << ", lambda_obj:" << opts.lambda_obj;
             out << ", lambda_box:" << opts.lambda_box;
             out << ", lambda_cls:" << opts.lambda_cls;
+            out << ", gamma_obj:" << opts.gamma_obj;
+            out << ", gamma_cls:" << opts.gamma_cls;
             out << ", overlaps_nms:(" << opts.overlaps_nms.get_iou_thresh() << "," << opts.overlaps_nms.get_percent_covered_thresh() << ")";
             out << ", classwise_nms:" << std::boolalpha << opts.classwise_nms;
             out << ")";
@@ -3964,7 +4001,7 @@ namespace dlib
 
         friend void to_xml(const loss_yolo_& /*item*/, std::ostream& out)
         {
-            out << "<loss_yolo/>";
+            out << "<loss_yolo/>\n";
         }
 
     private:
@@ -4090,16 +4127,16 @@ namespace dlib
             // --------------------------------------------
             // 	=> d/dA = 2 * B * diag(diag(A' * B) - vector(1)) = 2 * B * diag(diag(C) - vector(1))
             // 	=> d/dB = 2 * A * diag(diag(A' * B) - vector(1)) = 2 * A * diag(diag(C) - vector(1))
-            tt::gemm(0, grad_input_a, 2, zb_norm, false, cdiag_1, false);
-            tt::gemm(0, grad_input_b, 2, za_norm, false, cdiag_1, false);
+            tt::gemm(0, grad_input_a, 2.0 / batch_size, zb_norm, false, cdiag_1, false);
+            tt::gemm(0, grad_input_b, 2.0 / batch_size, za_norm, false, cdiag_1, false);
 
             // off-diag term: sum(((A'* B) .* D).^2)
             // --------------------------------
-            //  => d/dA = 2 * B * ((B' * A) .* (D .* D)') = 2 * B * (C .* (D .* D)) = 2 * B * (C .* D)
+            //  => d/dA = 2 * B * ((B' * A) .* (D .* D)') = 2 * B * (C' .* (D .* D)) = 2 * B * (C' .* D)
             //  => d/dB = 2 * A * ((A' * B) .* (D .* D))  = 2 * A * (C .* (D .* D)) = 2 * A * (C .* D)
             tt::multiply(false, off_diag, eccm, off_mask);
-            tt::gemm(1, grad_input_a, 2 * lambda, zb_norm, false, off_diag, false);
-            tt::gemm(1, grad_input_b, 2 * lambda, za_norm, false, off_diag, false);
+            tt::gemm(1, grad_input_a, lambda * 2.0 / batch_size, zb_norm, false, off_diag, true);
+            tt::gemm(1, grad_input_b, lambda * 2.0 / batch_size, za_norm, false, off_diag, false);
 
             // Compute the batch norm gradients, g and b grads are not used
             auto gza = split(grad);
@@ -4115,6 +4152,9 @@ namespace dlib
         }
 
         float get_lambda() const  { return lambda; }
+
+        tensor& get_eccm() { return eccm; }
+        const tensor& get_eccm() const { return eccm; }
 
         friend void serialize(const loss_barlow_twins_& item, std::ostream& out)
         {
@@ -4144,7 +4184,7 @@ namespace dlib
 
         friend void to_xml(const loss_barlow_twins_& item, std::ostream& out)
         {
-            out << "<loss_barlow_twins lambda='" << item.lambda << "'/>";
+            out << "<loss_barlow_twins lambda='" << item.lambda << "'/>\n";
         }
 
     private:

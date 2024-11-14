@@ -13,13 +13,234 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\NewFilter1">
+      <UniqueIdentifier>{ecbe208e-7522-44e9-a16a-41e912b18eb1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Dependencies\dlib\all\source.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\all\source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jaricom.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcapimin.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcapistd.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcarith.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jccoefct.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jccolor.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcdctmgr.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jchuff.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcinit.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcmainct.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcmarker.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcmaster.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcomapi.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcparam.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcprepct.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jcsample.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jctrans.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdapimin.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdapistd.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdarith.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdatadst.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdatasrc.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdcoefct.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdcolor.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jddctmgr.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdhuff.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdinput.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdmainct.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdmarker.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdmaster.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdmerge.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdpostct.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdsample.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jdtrans.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jerror.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jfdctflt.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jfdctfst.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jfdctint.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jidctflt.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jidctfst.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jidctint.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jmemmgr.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jmemnobs.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jquant1.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jquant2.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\jutils.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\rdbmp.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\rdcolmap.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\rdgif.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\rdppm.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\rdrle.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\rdswitch.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\rdtarga.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\transupp.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\wrbmp.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\wrgif.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\wrppm.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\wrrle.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\dlib\external\libjpeg\wrtarga.c">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\cderror.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\cdjpeg.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\jconfig.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\jdct.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\jerror.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\jinclude.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\jmemsys.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\jmorecfg.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\jpegint.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\jpeglib.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\jversion.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\external\libjpeg\transupp.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\dlib\image_loader\gif_lib.h">
+      <Filter>Source Files\NewFilter1</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

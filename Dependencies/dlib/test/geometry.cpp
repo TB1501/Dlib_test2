@@ -384,6 +384,28 @@ namespace
 
 // ----------------------------------------------------------------------------------------
 
+    void test_find_convex_hull()
+    {
+        print_spinner();
+        std::vector<dpoint> points{
+            { 0.0, 0.0 },
+            { 1.0, 1.0 },
+            { 2.0, 2.0 },
+            { 3.0, 1.0 },
+            { 4.0, 0.0 },
+            { 2.0, 4.0 },
+            { 1.0, 3.0 },
+        };
+        const auto hull = find_convex_hull(points);
+        DLIB_TEST(hull.size() == 4);
+        DLIB_TEST(hull[0] == dpoint(0, 0));
+        DLIB_TEST(hull[1] == dpoint(1, 3));
+        DLIB_TEST(hull[2] == dpoint(2, 4));
+        DLIB_TEST(hull[3] == dpoint(4, 0));
+    }
+
+// ----------------------------------------------------------------------------------------
+
     void test_border_enumerator()
     {
 
@@ -897,6 +919,39 @@ namespace
 
 // ----------------------------------------------------------------------------------------
 
+    void test_polygon()
+    {
+        print_spinner();
+        /* Let's define this triangle
+         * 0 . . . . . . . . . . .
+         * 1   . . . . . . . . .
+         * 2     . . . . . . .
+         * 3       . . . . .
+         * 4         . . .
+         * 5           .
+         *   0 1 2 3 4 5 6 7 8 9 10
+         */
+
+        const polygon triangle({{0, 0}, {5, 5}, {10, 0}});
+        DLIB_TEST(triangle.area() == 25);
+
+        const rectangle rect = triangle.get_rect();
+        std::vector<double> left_boundary;
+        std::vector<double> right_boundary;
+        triangle.get_left_and_right_bounds(rect.top(), rect.bottom(), left_boundary, right_boundary);
+
+        DLIB_TEST(left_boundary.size() == right_boundary.size());
+
+        const long top = rect.top();
+        const long bottom = rect.bottom();
+        for (long y = top, i = 0; y <= bottom; ++y, ++i)
+            DLIB_TEST(left_boundary[y - top] == i);
+        for (long y = top, i = 10; y <= bottom; ++y, --i)
+            DLIB_TEST(right_boundary[y - top] == i);
+    }
+
+// ----------------------------------------------------------------------------------------
+
     class geometry_tester : public tester
     {
     public:
@@ -922,6 +977,8 @@ namespace
             test_find_similarity_transform<float>(); 
             test_find_similarity_transform2<float>(); 
             test_line();
+            test_polygon();
+            test_find_convex_hull();
         }
     } a;
 
